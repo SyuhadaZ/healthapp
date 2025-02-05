@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-#from sentence_transformers import SentenceTransformer
-#from sklearn.metrics.pairwise import cosine_similarity
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 import openai
 openai.api_key =  st.secrets["mykey"]
 
@@ -11,7 +11,7 @@ openai.api_key =  st.secrets["mykey"]
 def load_data(file_path):
     try:
         df = pd.read_csv(file_path)
-        df['Question_Embedding'] = df['Question_Embedding'].apply(eval)  # Convert string to list/array
+        df['Question_Embedding'] = df['Question_Embedding'].apply(string)  # Convert string to list/array
         return df
     except FileNotFoundError:
         st.error(f"Error: File not found at {file_path}")
