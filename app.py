@@ -1,62 +1,50 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
+from openai.embeddings_utils import cosine_similarity
 import openai
-openai.api_key =  st.secrets["mykey"]
 
-# Load data and embeddings (with error handling)
-@st.cache_data
-def load_data(file_path):
-    try:
-        df = pd.read_csv(file_path)
-        df['Question_Embedding'] = df['Question_Embedding'].apply(string) 
-        return df
-    except FileNotFoundError:
-        st.error(f"Error: File not found at {file_path}")
-        return None
-    except Exception as e:
-        st.error(f"An error occurred during data loading: {e}")
-        return None
+# Set your OpenAI API key
+openai.api_key = st.secrets["mykey"] 
 
-df = load_data("qa_dataset_with_embeddings.csv")
+df = pd.read_csv("qa_dataset_with_embeddings.csv")
 
-if df is None:  # Stop execution if data loading failed
-    st.stop()
+# Convert the string embeddings back to lists
+df['Question_Embedding'] = df['Question_Embedding'].apply(ast.literal_eval)
+
+def get_embedding(text, model="text-embedding-ada-002"):
+   return openai.Embedding.create(input = [text], model=model)['data'][0]['embedding']
+
+def find_best_answer(user_question):
+   # Get embedding for the user's question
+   user_question_embedding = get_embedding(user_question)
+
+   # Calculate cosine similarities for all questions in the dataset
+   df['Similarity'] = df['Question_Embedding'].apply(lambda x: cosine_similarity(x, user_question_embedding))
+
+   # Find the most similar question and get its corresponding answer
+   most_similar_index = df['Similarity'].idxmax()
+   max_similarity = df['Similarity'].max()
+
+   # Set a similarity threshold to determine if a question is relevant enough
+   similarity_threshold = 0.75  # You can adjust this value
+
+   if max_similarity >= similarity_threshold:
+      best_answer = df.loc[most_similar_index, 'Answer']
+      return best_answer
+   else:
+      return "I apologize, but I don't have information on that topic yet. Could you please ask other questions?"
 
 
-# Load embedding model (cached)
-@st.cache_resource
-def load_model(healthapp):
-    return SentenceTransformer(healthapp)
+# Streamlit Interface
+st.title("Smart FAQ Assistant (Heart, Lung, Blood Health)")
 
-model = load_model('all-mpnet-base-v2')  
+user_question = st.text_input("Ask a question","Who will have Cardiomyopathy?")
+search_button = st.button("Find Answer")
 
-# Streamlit app
-st.title("Heart, Lung, and Blood Health Q&A")
-
-user_question = st.text_area("Enter your question:", height=150)
-similarity_threshold = st.slider("Similarity Threshold", 0.5) 
-
-if st.button("Get Answer"):
-    if user_question:
-        with st.spinner("Finding the most relevant answer..."):
-            question_embedding = model.encode(user_question)
-            similarities = cosine_similarity([question_embedding], np.array(df['Question_Embedding'].tolist()))
-            most_similar_index = np.argmax(similarities)
-            similarity_score = similarities[0][most_similar_index]
-
-            if similarity_score >= similarity_threshold:
-                answer = df.iloc[most_similar_index]['Answer']
-                st.subheader("Answer:")
-                st.write(answer)
-                st.write(f"**Similarity Score:** {similarity_score:.2f}") 
-            else:
-                st.write("I apologize, but I don't have information on that topic yet. Could you please ask other questions?")
-    else:
+if search_button:
+    if not user_question:
         st.warning("Please enter a question.")
-
-if st.button("Clear"):
-    user_question = "" 
-    st.experimental_rerun() 
+    else:
+        with st.spinner("Searching for the best answer..."):  # Display a spinner while searching
+            answer = find_best_answer(user_question)
+            st.write("## Answer:")
+            st.write(answer)
