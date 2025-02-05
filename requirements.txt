@@ -1,5 +1,1 @@
-streamlit
-pandas
-numpy
-sentence-transformers
-scikit-learn
+openai=0.28
