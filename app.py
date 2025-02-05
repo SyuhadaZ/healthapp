@@ -20,7 +20,7 @@ def load_data(file_path):
         st.error(f"An error occurred during data loading: {e}")
         return None
 
-df = load_data("/content/qa_dataset_with_embeddings.csv")
+df = load_data("qa_dataset_with_embeddings.csv")
 
 if df is None:  # Stop execution if data loading failed
     st.stop()
