@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-#from sentence_transformers import SentenceTransformer
-#from sklearn.metrics.pairwise import cosine_similarity
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 import openai
 openai.api_key =  st.secrets["mykey"]
 
@@ -11,7 +11,7 @@ openai.api_key =  st.secrets["mykey"]
 def load_data(file_path):
     try:
         df = pd.read_csv(file_path)
-        df['Question_Embedding'] = df['Question_Embedding'].apply(string)  # Convert string to list/array
+        df['Question_Embedding'] = df['Question_Embedding'].apply(string) 
         return df
     except FileNotFoundError:
         st.error(f"Error: File not found at {file_path}")
@@ -37,7 +37,7 @@ model = load_model('all-mpnet-base-v2')  # Or any other suitable model
 st.title("Heart, Lung, and Blood Health Q&A")
 
 user_question = st.text_area("Enter your question:", height=150)
-similarity_threshold = st.slider("Similarity Threshold", 0.0, 1.0, 0.6, 0.05) # Allow user to adjust
+similarity_threshold = st.slider("Similarity Threshold", 0.5) 
 
 if st.button("Get Answer"):
     if user_question:
