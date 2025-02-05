@@ -28,10 +28,10 @@ if df is None:  # Stop execution if data loading failed
 
 # Load embedding model (cached)
 @st.cache_resource
-def load_model(model_name):
-    return SentenceTransformer(model_name)
+def load_model(healthapp):
+    return SentenceTransformer(healthapp)
 
-model = load_model('all-mpnet-base-v2')  # Or any other suitable model
+model = load_model('all-mpnet-base-v2')  
 
 # Streamlit app
 st.title("Heart, Lung, and Blood Health Q&A")
@@ -51,12 +51,12 @@ if st.button("Get Answer"):
                 answer = df.iloc[most_similar_index]['Answer']
                 st.subheader("Answer:")
                 st.write(answer)
-                st.write(f"**Similarity Score:** {similarity_score:.2f}")  # Display score
+                st.write(f"**Similarity Score:** {similarity_score:.2f}") 
             else:
                 st.write("I apologize, but I don't have information on that topic yet. Could you please ask other questions?")
     else:
         st.warning("Please enter a question.")
 
 if st.button("Clear"):
-    user_question = "" # Clear the text area
-    st.experimental_rerun() # Rerun streamlit to clear the input
+    user_question = "" 
+    st.experimental_rerun() 
