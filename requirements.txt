@@ -1,4 +1,6 @@
 openai=0.28
 pandas
-ast
 streamlit
+matplotlib
+plotly
+scikit-learn
